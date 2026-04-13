@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2c3e50">
+    <title>EAKANSHU PRO MANAGER</title>
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJpZCI6ICIvIiwKICAic2hvcnRfbmFtZSI6ICJFQUtBTlNIVSIsCiAgIm5hbWUiOiAiRUFLQU5TSFUgREFJTFkgTkVFRFMiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2Y0ZjdmNiIsCiAgInRoZW1lX2NvbG9yIjogIiMyYzNlNTAiCn0=">
+    <style>
+        :root { 
+            --primary: #4a90e2; 
+            --success: #2ecc71; 
+            --danger: #e74c3c; 
+            --warning: #f1c40f; 
+            --dark: #2c3e50; 
+            /* Halka background color backup ke liye */
+            --bg-fallback: #f4f7f6; 
+        }
+
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0; 
+            padding: 10px; 
+            padding-bottom: 50px; 
+            min-height: 100vh;
+            /* YAHAN HAI SHOP BACKGROUND IMAGE */
+            /* Maine ek safe, public domain grocery image use ki hai. Aap ise apni dukan ki photo se badal sakte hain niche URL change karke. */
+            background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* Background scroll nahi hoga */
+            background-repeat: no-repeat;
+        }
+
+        /* Glassmorphism Effect container ke liye */
+        .container { 
+            max-width: 900px; 
+            margin: auto; 
+            /* Halka transparent white background */
+            background: rgba(255, 255, 255, 0.9); 
+            padding: 15px; 
+            border-radius: 20px; 
+            /* Blur effect background par */
+            backdrop-filter: blur(10px); 
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-top: 6px solid var(--primary); 
+        }
+        
+        h2 { text-align: center; color: var(--dark); margin-top: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+
+        /* Analytics Card */
+        .analytics-card { 
+            background: rgba(44, 62, 80, 0.95); /* Thoda transparent dark */
+            color: white; 
+            padding: 15px; 
+            border-radius: 15px; 
+            margin-bottom: 15px; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+        }
+        .stat { border-left: 4px solid var(--primary); padding-left: 12px; }
+        .stat h4 { margin: 0; font-size: 13px; opacity: 0.8; letter-spacing: 0.5px; }
+        .stat div { font-size: 20px; font-weight: bold; margin-top: 4px; }
+        .growth-up { color: var(--success); }
+        .growth-down { color: var(--danger); }
+
+        /* Day Selector */
+        .day-picker { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+            background: rgba(238, 238, 238, 0.8); 
+            padding: 12px; 
+            border-radius: 10px; 
+            backdrop-filter: blur(5px);
+        }
+        .day-picker label { font-weight: bold; color: var(--dark); }
+        input[type="date"] { 
+            padding: 10px; 
+            border-radius: 8px; 
+            border: 1px solid #ccc; 
+            flex: 1; 
+            font-size: 14px;
+            background: white;
+        }
+
+        /* Form Inputs */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .form-grid input, select { 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 10px; 
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .form-grid input:focus, select:focus { border-color: var(--primary); outline: none; background: white; }
+        
+        .add-btn { 
+            width: 100%; 
+            padding: 15px; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 16px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        .add-btn:active { transform: translateY(2px); box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; font-size: 14px; background: rgba(255, 255, 255, 0.5); border-radius: 10px; overflow: hidden; }
+        th { background: rgba(248, 249, 250, 0.8); padding: 12px; border-bottom: 2px solid #eee; color: #555; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; color: var(--dark); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(74, 144, 226, 0.05); }
+        
+        .badge { padding: 5px 8px; border-radius: 6px; color: white; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .cat-grocery { background: #27ae60; } 
+        .cat-dairy { background: #3498db; }
+        .cat-snacks { background: #e67e22; }
+        .cat-general { background: #7f8c8d; }
+
+        .action-btns button { 
+            padding: 8px; 
+            border-radius: 6px; 
+            border: none; 
+            cursor: pointer; 
+            color: white; 
+            margin: 2px; 
+            font-weight: bold;
+            font-size: 12px;
+            transition: opacity 0.2s;
+        }
+        .action-btns button:active { opacity: 0.7; }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            body { padding: 5px; }
+            .container { padding: 10px; border-radius: 15px; }
+            .analytics-card { gap: 8px; padding: 10px; }
+            .stat div { font-size: 16px; }
+            table { font-size: 12px; }
+            th, td { padding: 8px; }
+            .badge { padding: 3px 5px; font-size: 9px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🏪 EAKANSHU PRO MANAGER</h2>
+
+    <div class="analytics-card">
+        <div class="stat">
+            <h4>Today's Profit</h4>
+            <div id="todayProfit">₹0</div>
+        </div>
+        <div class="stat">
+            <h4>Business Status</h4>
+            <div id="growthStatus" class="growth-up">GROWING ▲</div>
+        </div>
+        <div class="stat">
+            <h4>Monthly Total</h4>
+            <div id="monthlyProfit">₹0</div>
+        </div>
+        <div class="stat">
+            <h4>Items in Shop</h4>
+            <div id="totalItems">0</div>
+        </div>
+    </div>
+
+    <div class="day-picker">
+        <label>Select Date:</label>
+        <input type="date" id="reportDate" onchange="loadDayData()">
+    </div>
+    
+    <div class="form-grid">
+        <input type="text" id="itemName" placeholder="Product Name" style="grid-column: span 2;">
+        <select id="category">
+            <option value="Grocery">Grocery</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Snacks">Snacks</option>
+            <option value="General">General</option>
+        </select>
+        <input type="number" id="costPrice" placeholder="CP (₹)">
+        <input type="number" id="sellPrice" placeholder="SP (₹)">
+        <input type="number" id="stock" placeholder="Stock">
+    </div>
+    <button class="add-btn" id="mainBtn" onclick="handleAction()">+ Add Item</button>
+
+    <div style="overflow-x: auto;">
+        <table id="itemTable">
+            <thead>
+                <tr><th>Item</th><th>Cat.</th><th>Price</th><th>Stock</th><th>Action</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // --- APP LOGIC (Wahi purana tested logic) ---
+    let inventory = JSON.parse(localStorage.getItem('inventory_data')) || [];
+    let dailyRecords = JSON.parse(localStorage.getItem('daily_records')) || {};
+    let editId = null;
+
+    // Set default date to today
+    document.getElementById('reportDate').valueAsDate = new Date();
+
+    window.onload = refreshUI;
+
+    function handleAction() {
+        const nameInput = document.getElementById('itemName');
+        const catInput = document.getElementById('category');
+        const cpInput = document.getElementById('costPrice');
+        const spInput = document.getElementById('sellPrice');
+        const stockInput = document.getElementById('stock');
+
+        const name = nameInput.value;
+        const cat = catInput.value;
+        const cp = parseFloat(cpInput.value);
+        const sp = parseFloat(spInput.value);
+        const stock = parseInt(stockInput.value) || 0;
+
+        if(!name || isNaN(cp) || isNaN(sp)) return alert("Product Name, CP, aur SP bharna zaroori hai!");
+
+        if(editId) {
+            const idx = inventory.findIndex(i => i.id === editId);
+            inventory[idx] = { id: editId, name, cat, cp, sp, stock };
+            editId = null;
+            document.getElementById('mainBtn').innerText = "+ Add Item";
+            document.getElementById('mainBtn').style.background = "var(--primary)";
+        } else {
+            inventory.push({ id: Date.now(), name, cat, cp, sp, stock });
+        }
+        saveAll();
+        clearInputs();
+        refreshUI();
+    }
+
+    function sellItem(id) {
+        const item = inventory.find(i => i.id === id);
+        const today = document.getElementById('reportDate').value;
+
+        if(item && item.stock > 0) {
+            item.stock--;
+            const profitVal = item.sp - item.cp;
+            
+            // Record Daily Data
+            if(!dailyRecords[today]) dailyRecords[today] = 0;
+            dailyRecords[today] += profitVal;
+
+            saveAll();
+            refreshUI();
+        } else { alert("Out of Stock!"); }
+    }
+
+    function saveAll() {
+        localStorage.setItem('inventory_data', JSON.stringify(inventory));
+        localStorage.setItem('daily_records', JSON.stringify(dailyRecords));
+    }
+
+    function loadDayData() { refreshUI(); }
+
+    function refreshUI() {
+        const today = document.getElementById('reportDate').value;
+        const todayP = dailyRecords[today] || 0;
+        
+        // Update Static Stats
+        document.getElementById('todayProfit').innerText = "₹" + todayP.toFixed(2);
+        document.getElementById('totalItems').innerText = inventory.length;
+
+        // Monthly Calculation
+        let monthly = 0;
+        Object.values(dailyRecords).forEach(v => monthly += v);
+        document.getElementById('monthlyProfit').innerText = "₹" + monthly.toFixed(2);
+
+        // Growth Status Logic
+        const status = document.getElementById('growthStatus');
+        if(todayP > 500) { status.innerText = "GROWING ▲"; status.className = "growth-up"; }
+        else if(todayP > 0) { status.innerText = "STABLE —"; status.className = ""; }
+        else { status.innerText = "NO SALES"; status.className = "growth-down"; }
+
+        const tbody = document.querySelector('#itemTable tbody');
+        tbody.innerHTML = '';
+        inventory.forEach(item => {
+            tbody.innerHTML += `<tr>
+                <td><b>${item.name}</b></td>
+                <td><span class="badge cat-${item.cat.toLowerCase()}">${item.cat[0]}</span></td>
+                <td>₹${item.sp}</td>
+                <td style="color:${item.stock < 5 ? 'var(--danger)' : 'black'}; font-weight:${item.stock < 5 ? 'bold' : 'normal'}">${item.stock <= 0 ? '❌' : item.stock}</td>
+                <td class="action-btns">
+                    <button style="background:var(--warning)" onclick="sellItem(${item.id})">S</button>
+                    <button style="background:var(--dark)" onclick="editItem(${item.id})">E</button>
+                    <button style="background:var(--danger)" onclick="deleteItem(${item.id})">D</button>
+                </td>
+            </tr>`;
+        });
+    }
+
+    function editItem(id) {
+        const item = inventory.find(i => i.id === id);
+        document.getElementById('itemName').value = item.name;
+        document.getElementById('category').value = item.cat;
+        document.getElementById('costPrice').value = item.cp;
+        document.getElementById('sellPrice').value = item.sp;
+        document.getElementById('stock').value = item.stock;
+        editId = id;
+        document.getElementById('mainBtn').innerText = "Update Now";
+        document.getElementById('mainBtn').style.background = "var(--dark)";
+        window.scrollTo(0,0);
+    }
+
+    function deleteItem(id) {
+        if(confirm("Pakka delete kar dein?")) { inventory = inventory.filter(i => i.id !== id); saveAll(); refreshUI(); }
+    }
+
+    function clearInputs() {
+        document.getElementById('itemName').value = '';
+        document.getElementById('costPrice').value = '';
+        document.getElementById('sellPrice').value = '';
+        document.getElementById('stock').value = '';
+        document.getElementById('category').value = 'Grocery';
+    }
+</script>
+</body>
+</html>
