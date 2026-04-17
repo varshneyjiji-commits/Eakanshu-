@@ -3,123 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EAKANSHU - Stock & Profit</title>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <title>Eakanshu Pro Business OS - Fixed</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 15px; text-align: center; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        h2 { color: #1a73e8; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat { padding: 10px; border-radius: 8px; color: white; font-weight: bold; }
-        .profit { background: #28a745; }
-        .stock { background: #dc3545; }
-        input, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
-        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .list-item { background: white; padding: 10px; margin: 5px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .btn-s { background: #ffc107; color: black; width: 40px; padding: 5px; }
+        :root { --blue: #2563eb; --yellow: #facc15; --bg: #f8fafc; --green: #22c55e; --red: #ef4444; --dark: #0f172a; }
+        body { font-family: 'Outfit', sans-serif; margin: 0; background: var(--bg); padding-bottom: 90px; }
+        .hidden { display: none !important; }
+        .flex { display: flex; justify-content: space-between; align-items: center; }
+        header { background: var(--blue); color: #fff; padding: 20px; border-radius: 0 0 20px 20px; position: sticky; top: 0; z-index: 1000; }
+        .p-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
+        .p-card { background: #fff; border-radius: 15px; overflow: hidden; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .p-img { width: 100%; height: 110px; object-fit: contain; background: #fff; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #cbd5e1; box-sizing: border-box; font-family: 'Outfit'; }
+        .btn { padding: 12px; border: none; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; }
+        .panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; overflow: auto; padding: 20px; z-index: 2000; box-sizing: border-box; }
+        #cartBar { position: fixed; bottom: 20px; left: 5%; width: 90%; background: var(--dark); color: white; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; z-index: 1000; cursor: pointer; }
+        .loc-status { font-size: 11px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 10px; margin-top: 10px; display: inline-block; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>EAKANSHU SHOP</h2>
-        <div class="grid">
-            <div class="stat profit">Profit: ₹<span id="totalProfit">0</span></div>
-            <div class="stat stock">Stock: <span id="totalStock">0</span></div>
+<div id="homePage">
+    <header>
+        <div class="flex">
+            <b style="font-size: 1.4rem;">EAKANSHU PRO</b>
+            <button onclick="adminLogin()" style="background:var(--yellow); border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">ADMIN</button>
         </div>
+        <div id="locStatus" class="loc-status">📍 Detecting Location...</div>
+        <input id="custSearch" placeholder="Search Maggi, Milk..." onkeyup="renderItems()" style="margin-top:10px;">
+        <select id="catFilter" onchange="renderItems()">
+            <option value="All">All Categories</option>
+            <option>Snacks</option><option>Fast Food</option><option>Drinks</option><option>Groceries</option><option>Dairy</option>
+        </select>
+    </header>
+    <div id="productGrid" class="p-grid"></div>
+</div>
+
+<div id="cartBar" class="hidden" onclick="showTab('cart')">
+    <span id="cartCount">0 Items</span>
+    <span id="cartTotalBar">₹0 VIEW ➔</span>
+</div>
+
+<div id="cartPanel" class="panel">
+    <div class="flex"><h3>Your Cart</h3> <button onclick="showTab('home')">CLOSE</button></div>
+    <div id="distInfo" style="padding:10px; background:#e0f2fe; border-radius:10px; margin-bottom:10px; font-size:14px; color:#0369a1;">
+        Distance: <b id="distText">Detecting...</b>
     </div>
-
-    <div class="card">
-        <input type="text" id="itemName" placeholder="Item ka Naam">
-        <input type="number" id="itemPrice" placeholder="Price (₹)">
-        <input type="number" id="itemStock" placeholder="Stock Quantity">
-        <button onclick="addItem()">Naya Item Jodein</button>
+    <input id="cName" placeholder="Customer Name">
+    <input id="cMobile" placeholder="WhatsApp Number">
+    <div id="cartList" style="margin: 20px 0; border-top:1px solid #eee;"></div>
+    
+    <div style="background:var(--dark); color:white; padding:15px; border-radius:12px;">
+        <div class="flex"><span>Subtotal:</span><span id="subTotalDisp">₹0</span></div>
+        <div class="flex" style="font-size:0.9rem; color:#94a3b8;">
+            <span>Delivery (<span id="rateLabel">0</span>/km):</span><span id="delTotalDisp">₹0</span>
+        </div>
+        <hr style="opacity:0.2;">
+        <div class="flex" style="font-size:1.4rem; font-weight:bold;"><span>Total:</span><span>₹<span id="grandTotal">0</span></span></div>
     </div>
+    <button class="btn" onclick="placeOrder()" style="background:var(--green); color:white; margin-top:20px;">SEND ORDER ON WHATSAPP</button>
+</div>
 
-    <div id="itemList"></div>
+<div id="adminPanel" class="panel">
+    <div class="flex"><h3>Inventory</h3> <button onclick="showTab('home')">EXIT</button></div>
+    <div style="background:#f1f5f9; padding:15px; border-radius:12px;">
+        <input type="hidden" id="editId">
+        <input id="pName" placeholder="Product Name">
+        <select id="pCat"><option>Snacks</option><option>Fast Food</option><option>Drinks</option><option>Groceries</option><option>Dairy</option></select>
+        <input id="pSP" type="number" placeholder="Selling Price">
+        <input id="pStock" type="number" placeholder="Stock">
+        <button class="btn" onclick="saveItem()" style="background:var(--blue); color:white;">SAVE PRODUCT</button>
+    </div>
+    <div id="adminInv" style="margin-top:20px;"></div>
+</div>
 
-    <script>
-        // AAPKI FIREBASE CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyAs_vRTyxP9Ef6xSQMyUDnTqBQaOaGJFE",
-            authDomain: "shop-7d1b3.firebaseapp.com",
-            projectId: "shop-7d1b3",
-            storageBucket: "shop-7d1b3.firebasestorage.app",
-            messagingSenderId: "185330821028",
-            appId: "1:185330821028:web:3dfb744aa714026fc51cb1"
-        };
+<script>
+// --- Configuration ---
+const SHOP_LAT = 27.1767; // Change this to your shop latitude
+const SHOP_LON = 78.0081; // Change this to your shop longitude
+const MY_WHATSAPP = "91XXXXXXXXXX"; // Change to your number with 91
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+let inventory = JSON.parse(localStorage.getItem('eak_os_inv')) || [
+    {id:1, name:"Aloo Bhujia", cat:"Snacks", sp:45, stock:50, img:"https://m.media-amazon.com/images/I/81vR5I8-D1L._SL1500_.jpg"},
+    {id:2, name:"Coca Cola 500ml", cat:"Drinks", sp:40, stock:48, img:"https://m.media-amazon.com/images/I/51v8ny98SGL._SL1000_.jpg"}
+];
+let cart = [];
+let userDistance = 0;
 
-        // Data Load Karo
-        function loadData() {
-            db.collection("inventory").onSnapshot((snapshot) => {
-                let listHtml = "";
-                let profit = 0;
-                let stock = 0;
+// --- Location Engine ---
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2-lat1) * Math.PI/180;
+    const dLon = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    return (R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)))).toFixed(2);
+}
 
-                snapshot.forEach((doc) => {
-                    const item = doc.data();
-                    listHtml += `
-                        <div class="list-item">
-                            <span><b>${item.name}</b> (₹${item.price}) - Qty: ${item.qty}</span>
-                            <button class="btn-s" onclick="sellItem('${doc.id}', ${item.qty}, ${item.price})">S</button>
-                        </div>`;
-                    stock += parseInt(item.qty);
-                });
+function initLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+            userDistance = getDistance(SHOP_LAT, SHOP_LON, pos.coords.latitude, pos.coords.longitude);
+            document.getElementById('locStatus').innerText = `📍 Delivery Distance: ${userDistance} KM`;
+            document.getElementById('distText').innerText = userDistance + " KM";
+            updateBillUI();
+        }, () => {
+            document.getElementById('locStatus').innerText = "📍 Location Error (Using 1KM)";
+            userDistance = 1;
+            updateBillUI();
+        });
+    }
+}
 
-                // Profit alag collection se uthayenge
-                db.collection("metrics").doc("totals").get().then((doc) => {
-                    if(doc.exists) {
-                        document.getElementById('totalProfit').innerText = doc.data().profit || 0;
-                    }
-                });
+// --- Cart Logic ---
+function renderItems() {
+    let grid = document.getElementById('productGrid');
+    let term = document.getElementById('custSearch').value.toLowerCase();
+    let cat = document.getElementById('catFilter').value;
+    grid.innerHTML = '';
 
-                document.getElementById('itemList').innerHTML = listHtml;
-                document.getElementById('totalStock').innerText = stock;
-            });
+    inventory.forEach(i => {
+        if ((cat === 'All' || i.cat === cat) && i.name.toLowerCase().includes(term)) {
+            let out = i.stock <= 0;
+            grid.innerHTML += `
+                <div class="p-card">
+                    <img src="${i.img || 'https://via.placeholder.com/150'}" class="p-img">
+                    <div style="padding:10px;">
+                        <b style="font-size:13px;">${i.name}</b><br>
+                        <span style="color:var(--blue); font-weight:bold;">₹${i.sp}</span>
+                        <button class="btn" onclick="updateQty(${i.id}, 1)" style="background:var(--yellow); margin-top:8px;" ${out?'disabled':''}>
+                            ${out ? 'OUT' : 'ADD +'}
+                        </button>
+                    </div>
+                </div>`;
         }
+    });
+}
 
-        // Item Jodein
-        async function addItem() {
-            const name = document.getElementById('itemName').value;
-            const price = document.getElementById('itemPrice').value;
-            const qty = document.getElementById('itemStock').value;
+function updateQty(id, chg) {
+    let item = inventory.find(i => i.id === id);
+    let c = cart.find(x => x.id === id);
+    if (c) {
+        c.qty += chg;
+        if (c.qty <= 0) cart = cart.filter(x => x.id !== id);
+    } else if (chg > 0) {
+        cart.push({...item, qty: 1});
+    }
+    updateBillUI();
+}
 
-            if(name && price && qty) {
-                await db.collection("inventory").add({
-                    name: name,
-                    price: parseFloat(price),
-                    qty: parseInt(qty)
-                });
-                document.getElementById('itemName').value = '';
-                document.getElementById('itemPrice').value = '';
-                document.getElementById('itemStock').value = '';
-            }
-        }
+function updateBillUI() {
+    let sub = cart.reduce((s, i) => s + (i.sp * i.qty), 0);
+    
+    // Automatic Pricing Slab
+    let rate = 20;
+    if (userDistance > 10) rate = 8;
+    else if (userDistance >= 5) rate = 12;
+    else if (userDistance >= 2) rate = 15;
+    
+    let delCharge = (sub >= 1100 || sub === 0) ? 0 : Math.round(userDistance * rate);
+    let total = sub + delCharge;
 
-        // S (Sold) Button Function
-        async function sellItem(id, currentQty, price) {
-            if(currentQty > 0) {
-                // Update Stock
-                await db.collection("inventory").doc(id).update({
-                    qty: currentQty - 1
-                });
+    document.getElementById('cartBar').className = cart.length > 0 ? "" : "hidden";
+    document.getElementById('cartCount').innerText = cart.length + ' Items';
+    document.getElementById('cartTotalBar').innerText = '₹' + total;
+    document.getElementById('subTotalDisp').innerText = '₹' + sub;
+    document.getElementById('delTotalDisp').innerText = (sub >= 1100) ? 'FREE' : '₹' + delCharge;
+    document.getElementById('rateLabel').innerText = '₹' + rate;
+    document.getElementById('grandTotal').innerText = total;
 
-                // Update Profit
-                const metricsRef = db.collection("metrics").doc("totals");
-                db.runTransaction(async (transaction) => {
-                    const doc = await transaction.get(metricsRef);
-                    const newProfit = (doc.exists ? doc.data().profit : 0) + parseFloat(price);
-                    transaction.set(metricsRef, { profit: newProfit });
-                });
-            }
-        }
+    document.getElementById('cartList').innerHTML = cart.map(i => `
+        <div class="flex" style="padding:10px 0; border-bottom:1px solid #eee;">
+            <span>${i.name} x${i.qty}</span>
+            <b>₹${i.sp * i.qty}</b>
+        </div>
+    `).join('');
+}
 
-        loadData();
-    </script>
+// --- Navigation & Admin ---
+function showTab(t) {
+    document.getElementById('homePage').style.display = (t==='home'?'block':'none');
+    document.getElementById('cartPanel').style.display = (t==='cart'?'block':'none');
+    document.getElementById('adminPanel').style.display = (t==='admin'?'block':'none');
+}
+
+function adminLogin() {
+    if(prompt("PIN (2003):") === "2003") { showTab('admin'); renderAdmin(); }
+}
+
+function renderAdmin() {
+    document.getElementById('adminInv').innerHTML = inventory.map(i => `
+        <div class="flex" style="border-bottom:1px solid #eee; padding:10px;">
+            <span>${i.name} (${i.stock})</span>
+            <button onclick="delItem(${i.id})" style="color:red; border:none; background:none;">X</button>
+        </div>
+    `).join('');
+}
+
+function delItem(id) {
+    inventory = inventory.filter(i => i.id !== id);
+    localStorage.setItem('eak_os_inv', JSON.stringify(inventory));
+    renderAdmin(); renderItems();
+}
+
+function saveItem() {
+    let name = document.getElementById('pName').value;
+    let sp = +document.getElementById('pSP').value;
+    let stock = +document.getElementById('pStock').value;
+    let cat = document.getElementById('pCat').value;
+    if(!name || !sp) return;
+    inventory.push({id: Date.now(), name, sp, stock, cat, img:""});
+    localStorage.setItem('eak_os_inv', JSON.stringify(inventory));
+    renderAdmin(); renderItems();
+}
+
+function placeOrder() {
+    let name = document.getElementById('cName').value;
+    if(!name || cart.length === 0) return alert("नाम और सामान चेक करें!");
+    
+    let msg = `*NEW ORDER - EAKANSHU PRO*%0A--------------------------%0A*Name:* ${name}%0A*Distance:* ${userDistance} KM%0A--------------------------%0A`;
+    cart.forEach(i => msg += `${i.name} x ${i.qty} = ₹${i.sp * i.qty}%0A`);
+    msg += `--------------------------%0A*Total:* ₹${document.getElementById('grandTotal').innerText}`;
+    
+    window.open(`https://wa.me/${MY_WHATSAPP}?text=${msg}`);
+}
+
+initLocation();
+renderItems();
+</script>
 </body>
 </html>
